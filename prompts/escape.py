@@ -1,4 +1,5 @@
 import base64
+
 ESC = "\033["
 
 def cursorUp(row=1):
@@ -10,19 +11,20 @@ def cursorDown(row=1):
 def cursorForward(column=1):
     return ESC + str(column) + "C" if column > 0 else ""
 
-def cursorUp(column=1):
+def cursorBackward(column=1):
     return ESC + str(column) + "D" if column > 0 else ""
+
 
 def cursorMove(x=0, y=0):
     ret = ""
     if x > 0:
-        ret += "\033[{}D".format(x)
+        ret += "\033[{}C".format(x)
     elif x < 0:
-        ret += "\033[{}C".format(-x)
+        ret += "\033[{}D".format(-x)
     if y > 0:
         ret += "\033[{}B".format(y)
     elif y < 0:
-        ret += "\033[{}D".format(-y)
+        ret += "\033[{}A".format(-y)
     return ret
 
 def cursorTo(x=0, y=0):
@@ -32,7 +34,8 @@ def cursorTo(x=0, y=0):
         return ""
 
 cursorLeft = ESC + "1000D"  # big number!
-cursorHead = cursorLeft
+cursorHome = cursorLeft
+cursorEnd = ESC + "1000C"
 cursorSavePosition = ESC + 's'
 cursorRestorePosition = ESC + 'u'
 cursorGetPosition = ESC + '6n'
@@ -45,7 +48,10 @@ beep = "\007"
 clearScreen = ESC + 'c'
 
 def eraseLines(count):
-    return [cursorHead + eraseEndLine] * count.join(cursorUp(1))
+    return cursorUp(1).join([cursorHome + eraseEndLine] * count)
+
+def eraseBackspace(count):
+    return cursorBackward(count) + ESC + str(count) + "X"  if count > 0 else ""
 
 eraseEndLine = ESC + 'K'
 eraseStartLine = ESC + '1K'
@@ -66,5 +72,3 @@ def image(content, width=None, height=None, preseveAspectRatio=True):
     if not preseveAspectRatio:
         ret += ";preserveAspectRatio=0"
     return ret + ":" + base64.b64encode(content) + "\007"
-
-__all__.remove("base64")

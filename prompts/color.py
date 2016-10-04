@@ -1,5 +1,6 @@
 import sys
 
+ESC = "\033["
 
 stylingMap = {
     "italic": "3",
@@ -32,19 +33,23 @@ stylingMap = {
 }
 
 
-class Color:
+class Color(object):
     def __init__(self):
         self.format = []
 
     def __getattr__(self, key):
+        if key.startswith("__") or key == "format":
+            return super(Color).__getattr__(self, key)
+
         if key.lower() not in stylingMap:
-            raise AttributeError
+            print("fail to found map for {}".format(key))
+            return self
         else:
-            self.attr.append(stylingMap[key.lower()])
+            self.format.append(stylingMap[key.lower()])
             return self
 
     def __call__(self, text):
-        ret = ESC + ";".join(self.attr) + "m" + text + ESC + "0m"
+        ret = ESC + ";".join(self.format) + "m" + text + ESC + "0m"
         self.attr = []
         return ret
 
